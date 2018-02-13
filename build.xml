@@ -1,56 +1,36 @@
-<project name="travis playground" default="dist" basedir=".">
-    <description>
-        travis stuff
-    </description>
- 
-  <property name="src" location="/"/>
-  <property name="build" location="build"/>
-  <property name="dist"  location="dist"/>
-  <property name="test"  location="/"/>
-  <property name="junit" location="lib/junit-4.12.jar"/>
- 
+<project name="junit-example">
+  <property name="main.build.dir" value="/"/>
+  <property name="main.src.dir" value="/"/>
+  <property name="test.build.dir" value="/"/>
+  <property name="test.src.dir" value="/"/>
+
   <path id="classpath.test">
-    <pathelement location="${junit}" />
-    <pathelement location="${test}" />
-    <pathelement location="${build}/main"/>
-    <pathelement location="${build}/test"/>
+    <pathelement location="lib/junit-4.12.jar"/>
+    <pathelement location="${main.build.dir}"/>
   </path>
- 
-  <target name="init">
-    <tstamp/>
-    <mkdir dir="${build}"/>
-    <mkdir dir="${build}/test"/>
-    <mkdir dir="${build}/main"/>
+
+  <target name="compile">
+    <mkdir dir="${main.build.dir}"/>
+    <javac srcdir="${main.src.dir}" destdir="${main.build.dir}" includeantruntime="false"/>
   </target>
- 
-  <target name="compile" depends="init" description="compile">
-    <javac srcdir="${src}" destdir="${build}/main"/>
-    <javac srcdir="${test}" destdir="${build}/test">
-      <classpath>
-        <pathelement location="${junit}"/>
-      </classpath>
+
+  <target name="test-compile" depends="compile">
+    <mkdir dir="${test.build.dir}"/>
+    <javac srcdir="${test.src.dir}" destdir="${test.build.dir}" includeantruntime="false">
+        <classpath refid="classpath.test"/>
     </javac>
   </target>
- 
-  <target name="dist" depends="compile">
-    <mkdir dir="${dist}/lib"/>
-    <jar jarfile="${dist}/lib/travis-playground-${DSTAMP}.jar" basedir="${build}"/>
-  </target>
- 
-  <target name="test" depends="compile">
-    <junit fork="yes" haltonfailure="true">
-      <classpath refid="classpath.test" />
-      <batchtest fork="yes" todir="tres">
-        <formatter type="brief" usefile="false"/>
-        <fileset dir="${test}">
-          <include name="**/*Test*.java"/>
-        </fileset>
-      </batchtest>
+
+  <target name="test" depends="test-compile">
+    <junit printsummary="on" haltonfailure="yes" fork="true">
+        <classpath>
+          <path refid="classpath.test"/>
+          <pathelement location="${test.build.dir}"/>
+        </classpath>
+        <formatter type="brief" usefile="false" />
+        <batchtest>
+            <fileset dir="${test.src.dir}" includes="**/*Test.java" />
+        </batchtest>
     </junit>
-  </target>
- 
-  <target name="clean" description="clean up" >
-    <delete dir="${build}"/>
-    <delete dir="${dist}"/>
   </target>
 </project>
